@@ -59,7 +59,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$bFound = true;
 			}
 		}
-		\Aurora\System\Api::Log("Found in servers: ".($bFound?"YES":"NO"));
 		return $bFound;
 	}
 	
