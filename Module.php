@@ -73,6 +73,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$cpanel_host = "127.0.0.1";
 			$cpanel_user = $this->getConfig('CpanelUser','');
 			$cpanel_pass = $this->getConfig('CpanelPass','');
+                        $cpanel_user0 = $cpanel_user0;
 
 			$email_user = urlencode($oAccount->Email);
 			$email_pass = urlencode($sPassword);
