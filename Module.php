@@ -77,9 +77,41 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$email_user = urlencode($oAccount->Email);
 			$email_pass = urlencode($sPassword);
 			list($email_login, $email_domain) = explode('@', $oAccount->Email); 
-		
-			$query = "https://".$cpanel_host.":2083/execute/Email/passwd_pop?email=".$email_user."&password=".$email_pass."&domain=".$email_domain;
-
+			
+			if ($cpanel_user == "root") 
+			{
+				$query = "https://".$cpanel_host.":2087/json-api/listaccts?api.version=1&searchtype=domain&search=".$email_domain;
+				
+				$curl = curl_init();
+				curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
+				curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
+				curl_setopt($curl, CURLOPT_HEADER,0);
+				curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
+				$header[0] = "Authorization: Basic " . base64_encode($cpanel_user.":".$cpanel_pass) . "\n\r";
+				curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+				curl_setopt($curl, CURLOPT_URL, $query);
+				$result = curl_exec($curl);
+				if ($result == false) {
+					\Aurora\System\Api::Log("curl_exec threw error \"" . curl_error($curl) . "\" for $query");
+					curl_close($curl);
+					throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Exceptions\Errs::UserManager_AccountNewPasswordUpdateError);
+				} else {
+					curl_close($curl);
+					\Aurora\System\Api::Log("..:: QUERY0 ::.. ".$query);
+					$json_res = json_decode($result,true);
+					\Aurora\System\Api::Log("..:: RESULT0 ::.. ".$result);
+					if(isset($json_res['data']['acct'][0]['user'])) {
+						$cpanel_user0 = $json_res['data']['acct'][0]['user'];
+						\Aurora\System\Api::Log("..:: USER ::.. ".$cpanel_user0);
+					}
+				}					
+				$query = "https://".$cpanel_host.":2087/json-api/cpanel?cpanel_jsonapi_user=".$cpanel_user0."&cpanel_jsonapi_module=Email&cpanel_jsonapi_func=passwdpop&cpanel_jsonapi_apiversion=2&email=".$email_user."&password=".$email_pass."&domain=".$email_domain;
+			}
+			else 
+			{
+				$query = "https://".$cpanel_host.":2083/execute/Email/passwd_pop?email=".$email_user."&password=".$email_pass."&domain=".$email_domain;
+			}
+			
 			$curl = curl_init();
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
 			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
